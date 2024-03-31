@@ -4,5 +4,11 @@ build:
 run: build
 	./bin/api
 
+up:
+	docker-compose up -d
+
+down:
+	docker-compose down
+
 test:
 	go test -v ./...
