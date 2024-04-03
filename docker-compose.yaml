@@ -10,8 +10,8 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
       - MONGO_INITDB_DATABASE=reservation
-    volumes:
-      - ./data:/data/db
+    # volumes:
+    #   - ./data:/data/db
     networks:
       - reservation-network
 

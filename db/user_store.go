@@ -17,6 +17,7 @@ type UserStore interface {
 }
 
 type MongoUserStore struct {
+	UserStore
 	client *mongo.Client
 }
 
@@ -24,25 +25,25 @@ func NewMongoUserStore(client *mongo.Client) *MongoUserStore {
 	return &MongoUserStore{client: client}
 }
 
-func (mus *MongoUserStore) GetUserById(ctx context.Context, id string) (*types.User, error) {
-	var user types.User
+// func (mus *MongoUserStore) GetUserById(ctx context.Context, id string) (*types.User, error) {
+// 	var user types.User
 
-	usrCol := mus.client.Database(DBNAME).Collection(userCollection)
-	oid, er := ToObjectId(id)
-	if er != nil {
-		log.Println("Error in GetUserById: ", er)
-		return nil, er
+// 	usrCol := mus.client.Database(DBNAME).Collection(userCollection)
+// 	oid, er := ToObjectId(id)
+// 	if er != nil {
+// 		log.Println("Error in GetUserById: ", er)
+// 		return nil, er
 	
-	}
-	err := usrCol.FindOne(ctx, bson.M{"_id": oid}).Decode(&user)
-	if err != nil {
-		log.Println("Error in GetUserById: ", err)
-		return nil, err
-	}
+// 	}
+// 	err := usrCol.FindOne(ctx, bson.M{"_id": oid}).Decode(&user)
+// 	if err != nil {
+// 		log.Println("Error in GetUserById: ", err)
+// 		return nil, err
+// 	}
 
-	return &user, nil
+// 	return &user, nil
 
-}
+// }
 
 func (mus *MongoUserStore) GetAllUsers(ctx context.Context) ([]*types.User, error) {
 	var users []*types.User
