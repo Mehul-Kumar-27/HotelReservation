@@ -1,30 +1,48 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
+	"log"
 
-	"github.com/Mehul-Kumar-27/HotelReservation/types"
-	"github.com/brianvoe/gofakeit/v6"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
+	// Connect to MySQL database
+	db := connectToMySql()
+	if db == nil {
+		log.Fatal("Error connecting to database")
+	}
+}
 
-	var hotel types.Hotel
-	gofakeit.Struct(&hotel)
-	fmt.Println(hotel.HotelName)
-	fmt.Println(hotel.City)
-	fmt.Println(hotel.Country)
-	fmt.Println(hotel.Street)
-	fmt.Println(hotel.Rooms)
-	fmt.Println(hotel.PricePerDay)
-	fmt.Println(hotel.Email)
-	fmt.Println(hotel.HotelUUID)
-	fmt.Println(hotel.Phone)
+func connectToMySql() *sql.DB {
+	var count int = 0
+	for {
+		db, err := sql.Open("mysql", "mehul:mehulpassword@tcp(localhost:3306)/reservation")
+		if err != nil {
+			if count < 5 {
+				log.Println("Error connecting to database. Retrying...")
+				count++
+			} else {
+				log.Fatalf("Error connecting to database: %v", err)
+				break
+			}
+		} else {
+			// Try to ping the sql
+			err := db.Ping()
+			if err != nil {
+				if count < 5 {
+					log.Println("Error pinging the database. Retrying...")
+					count++
+					continue
+				} else {
+					log.Fatalf("Error pinging the database: %v", err)
+					break
+				}
+			}
+			return db
+		}
+	}
 
-
-	/// 
-	var review types.Review
-	gofakeit.Struct(&review)
-	fmt.Println(review.ReviewID)
-	fmt.Println(review.Review)
+	return nil
 }
