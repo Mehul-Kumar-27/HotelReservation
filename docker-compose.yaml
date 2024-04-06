@@ -42,5 +42,20 @@ services:
     networks:
       - reservation-network
 
+  datagenerator:
+    build:
+      context: ./data_generator
+      dockerfile: Dockerfile
+    container_name: datagenerator
+    depends_on:
+      - mysql
+    environment:
+      - MYSQL_USER=mehul
+      - MYSQL_PASSWORD=mehulpassword
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=reservation
+    networks:
+      - reservation-network
+
 networks:
   reservation-network:

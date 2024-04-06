@@ -8,3 +8,5 @@ type User struct {
 	Phone      string   `bson:"phone" json:"phone" fake:"{phone}"`
 	BookingsID []string `bson:"bookingsId" json:"bookingsId" fake:"skip"`
 }
+
+
