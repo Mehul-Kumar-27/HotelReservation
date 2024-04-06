@@ -14,14 +14,14 @@ func NewDataGeneratorCli(db *sql.DB) *cobra.Command {
 		Long: `This CLI application is used to generate the data
 		for the hotel reservation system. It can be used to generate user, hotel, and booking data.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			log.Panicln("Welocome to the data generator CLI.")
+			log.Println("Welocome to the data generator CLI.")
 			log.Println("Creating user table..")
 			databasehandler := NewDatabaseHandlerForSQL(db)
 			err := databasehandler.databaseHandlerInterface.CreateUserTable()
 			if err != nil {
 				log.Fatalln("Error creating user table: ", err)
 			}
-
+			
 		},
 	}
 	return cmd

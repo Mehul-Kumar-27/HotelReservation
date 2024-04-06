@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -59,14 +58,7 @@ func main() {
 
 	// Handle graceful shutdown on interrupt
 	ctx, cancel := context.WithCancel(context.Background())
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
 	defer cancel()
-
-	go func() {
-		<-interrupt
-		log.Println("Shutting down the data generator")
-	}()
 
 	// Run the CLI
 	go func() {
@@ -75,6 +67,8 @@ func main() {
 			log.Printf("Error running the CLI: %v", err)
 		}
 	}()
+	<-ctx.Done()
+	log.Println("Shutting down the data generator")
 
 	// Close the database connection
 	if err := db.Close(); err != nil {
