@@ -1,8 +1,0 @@
-version: "3"
-
-services:
-  datagenerator:
-    build:
-      context: ./
-      dockerfile: ./data_generator/Dockerfile
-    container_name: datagenerator

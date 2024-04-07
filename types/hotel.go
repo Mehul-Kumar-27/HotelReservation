@@ -8,6 +8,6 @@ type Hotel struct {
 	Rooms       int     `json:"rooms" fake:"{number:1,300}"`
 	PricePerDay float64 `json:"pricePerDay" fake:"{number:100,500}"`
 	Email       string  `json:"email" fake:"{email}"`
-	HotelUUID   string  `json:"hotelid" fake:"{uuid}"`
+	HotelID     string  `json:"hotelid" fake:"{uuid}"`
 	Phone       string  `json:"phone" fake:"{phone}"`
 }
