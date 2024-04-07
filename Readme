@@ -1,0 +1,25 @@
+# Hotel Reservation System Design
+
+###### The motive of this project is to implement a system design of a high scalable hotel reservation system.
+
+#### What is Hotel Reservation System ? 🤔
+
+A hotel reservation system is a system that helps the user to search for hotels, reviews, book hotels, authenticate in a user friendly manner. 
+
+Some of the most prominent hotel reservation system are [Booking.com](https://www.booking.com/), [MakeMyTrip](https://www.makemytrip.com/)
+
+We will try to implement a system similar to them. The project use of Golang, Docker and various other tools for implementing the system.
+
+#### Requirements 
+
+Our system would have the following requirements. 
+
+- Functional Requirements
+    - User should be able to search for the hotles based on query of loaction such as cities, price etc.
+    - User should be able to add reviews and also filter hotels based on the reviews.
+    - User should be able to authenticate and make payments.
+    - User should be able to view real-time availability of rooms for their selected dates.
+    - User should be able to cancel or modify their bookings within a specified time frame, subject to cancellation policies.
+    - Admin should be able to manage hotel listings, including adding new hotels, updating information, and removing outdated listings.
+    - System should send email confirmations to users upon successful booking, cancellation, or modification of reservations.
+
