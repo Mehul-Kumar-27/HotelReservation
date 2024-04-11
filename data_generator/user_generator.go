@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -77,4 +78,39 @@ func (h *SqlDataHandeler) CreateFakeUsers(count int) error {
 	log.Printf("Time Taken to insert is %v", time.Since(start))
 	return nil
 
+}
+
+func queryToGetRandomUser(count int, db *sql.DB) []string {
+	status := db.Stats()
+	log.Printf("At the start of the functions")
+	log.Printf("%v", status.MaxOpenConnections)
+	log.Printf("Number of open connections: %v", status.OpenConnections)
+	log.Printf("Number of in use connections: %v", status.InUse)
+	log.Printf("Number of idle connections: %v", status.Idle)
+	log.Printf("Number of waiting connections: %v", status.WaitCount)
+	var userList []string
+	rows, err := db.Query("SELECT USERID FROM USERS ORDER BY RAND() LIMIT ?", count)
+	if err != nil {
+		log.Printf("At Error to get random users")
+		log.Printf("%v", status.MaxOpenConnections)
+		log.Printf("Number of open connections: %v", status.OpenConnections)
+		log.Printf("Number of in use connections: %v", status.InUse)
+		log.Printf("Number of idle connections: %v", status.Idle)
+		log.Printf("Number of waiting connections: %v", status.WaitCount)
+		log.Fatalf("Error fetching users from the user table, %v", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			log.Fatalf("Error decoding the row obtained from the database, %v", err)
+		}
+		userList = append(userList, id)
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatalf("Error closing the rows, %v", err)
+	}
+	return userList
 }

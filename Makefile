@@ -24,3 +24,6 @@ rdgen:
 	docker rmi hotelreservation_datagenerator
 
 try: down rdgen dgen up
+
+logs:
+	docker logs -f hotelreservation_datagenerator

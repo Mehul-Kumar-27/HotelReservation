@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -79,4 +80,45 @@ func (h *SqlDataHandeler) CreateHotelFakeData(cont int) error {
 	log.Println("Hotels inserted successfully")
 	log.Printf("Time taken to insert the hotels is %v", time.Since(start))
 	return nil
+}
+
+func queryToGetALLhotelID(db *sql.DB) ([]string, error) {
+
+	// First let get how many rows are present in the database table
+	// We would get the data from the database in batches
+
+	var totalRows int
+	err := db.QueryRow("SELECT COUNT(HOTELID) FROM HOTELS").Scan(&totalRows)
+	if err != nil {
+		log.Fatalf("Error fetching the count of the rows from the database")
+	}
+	var batchSize int = 500
+	var offset int = 0
+	var hotelIds []string
+	// 5000
+	for offset < totalRows {
+		query := fmt.Sprintf("SELECT HOTELID FROM HOTELS LIMIT %d OFFSET %d", batchSize, offset)
+		rows, err := db.Query(query)
+		if err != nil {
+			log.Fatalf("Error fetching the hotel id from the rows batch size %v", err)
+		}
+
+		for rows.Next() {
+			var id string
+			err := rows.Scan(&id)
+			if err != nil {
+				log.Fatalf("Error inserting the hotle id to the variable")
+			}
+
+			hotelIds = append(hotelIds, id)
+		}
+
+		if err := rows.Close(); err != nil {
+			log.Fatalf("Error closing the rows")
+		}
+
+		offset += batchSize
+	}
+	log.Printf("Sucessfully retrieved all the hotels id")
+	return hotelIds, nil
 }

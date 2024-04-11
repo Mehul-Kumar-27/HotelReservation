@@ -54,6 +54,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	db.SetMaxOpenConns(500)
+
 	dgen := NewCli(db)
 
 	// Handle graceful shutdown on interrupt

@@ -11,6 +11,10 @@ type DatabaseHandlerInterface interface {
 
 	CreateHotelTable() error
 	CreateHotelFakeData(count int) error
+
+	///
+	CreateBookingsTable()error
+	CreateBookingFakeData(count int)error
 }
 
 type DatabaseHandler struct {
