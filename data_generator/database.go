@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+
+	"github.com/Mehul-Kumar-27/HotelReservation/types"
 )
 
 type DatabaseHandlerInterface interface {
@@ -13,8 +15,17 @@ type DatabaseHandlerInterface interface {
 	CreateHotelFakeData(count int) error
 
 	///
-	CreateBookingsTable()error
-	CreateBookingFakeData(count int)error
+	CreateBookingsTable() error
+	CreateBookingFakeData(count int) error
+
+	//
+
+	CreateReviewsTable() error
+	StoreReviewFakeData(reviews []types.Review) error
+
+	//
+	CreateUserBookingTable() error
+	StoreUserBookings(userBookings []types.UserBookings) error
 }
 
 type DatabaseHandler struct {

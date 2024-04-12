@@ -10,4 +10,5 @@ type Hotel struct {
 	Email       string  `json:"email" fake:"{email}"`
 	HotelID     string  `json:"hotelid" fake:"{uuid}"`
 	Phone       string  `json:"phone" fake:"{phone}"`
+	HotelRating float32 `json:"hotelRating" fake:"{skip}"`
 }

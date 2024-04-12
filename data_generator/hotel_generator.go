@@ -21,7 +21,8 @@ func (h *SqlDataHandeler) CreateHotelTable() error {
 		ROOMS VARCHAR(255) NOT NULL,
 		PRICEPERDAY FLOAT NOT NULL,
 		EMAIL VARCHAR(255) NOT NULL,
-		PHONE VARCHAR(255) NOT NULL	
+		PHONE VARCHAR(255) NOT NULL,
+		RATING float,
 	)`
 
 	_, err := h.db.Exec(query)
@@ -121,4 +122,30 @@ func queryToGetALLhotelID(db *sql.DB) ([]string, error) {
 	}
 	log.Printf("Sucessfully retrieved all the hotels id")
 	return hotelIds, nil
+}
+
+func (h *SqlDataHandeler) AddReviewOfHotelsToDataBase(hotelAndReviews *map[string]float32) error {
+	query := `UPDATE HOTELS SET RATING = ? WHERE HOTELID = ?`
+	stmt, err := h.db.Prepare(query)
+	if err != nil {
+		log.Fatalf("Error preparing the query for updating the hotels")
+	}
+	defer stmt.Close()
+
+	tx, err := h.db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for hotelID, rating := range *hotelAndReviews {
+		_, err := stmt.Exec(rating, hotelID)
+		if err != nil {
+			log.Fatalf("Error updating the hotel ratings")
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("error committing transaction for updating the hotels: %w", err)
+	}
+	return nil
 }

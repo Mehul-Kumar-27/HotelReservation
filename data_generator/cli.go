@@ -26,10 +26,9 @@ func NewDataGeneratorCli(db *sql.DB) *cobra.Command {
 			}
 
 			bookings, err := flags.GetInt("b")
-			if err != nil{
+			if err != nil {
 				log.Fatalf("Error fetching the number of bookings to generate")
 			}
-
 
 			databaseHandler := NewDatabaseHandlerForSQL(db)
 			log.Println("Creating user table..")
@@ -66,12 +65,26 @@ func NewDataGeneratorCli(db *sql.DB) *cobra.Command {
 			}
 
 			log.Println("Bookings Table Generated")
+			err = databaseHandler.databaseHandlerInterface.CreateReviewsTable()
+			if err != nil {
+				log.Fatalf("Error creating the reviews table %v", err)
+			}
+			err = databaseHandler.databaseHandlerInterface.CreateUserBookingTable()
+			if err != nil {
+				log.Fatalf("Error creating the user booking table %v", err)
+			}
+			log.Println("Generated the fake booking data")
+			///
+			err = databaseHandler.databaseHandlerInterface.CreateReviewsTable()
+			if err != nil {
+				log.Fatalf("Error creating the reviews table %v", err)
+			}
 
 			err = databaseHandler.databaseHandlerInterface.CreateBookingFakeData(bookings)
 			if err != nil {
 				log.Println("Error generating the fake booking data")
 			}
-			log.Println("Generated the fake booking data")
+
 		},
 	}
 	cmdFlags := cmd.Flags()
