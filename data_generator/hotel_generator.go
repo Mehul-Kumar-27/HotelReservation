@@ -10,6 +10,11 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 )
 
+type HotelRating struct {
+	HotelID string
+	Rating  float32
+}
+
 func (h *SqlDataHandeler) CreateHotelTable() error {
 
 	query := `CREATE TABLE IF NOT EXISTS HOTELS(
@@ -22,12 +27,12 @@ func (h *SqlDataHandeler) CreateHotelTable() error {
 		PRICEPERDAY FLOAT NOT NULL,
 		EMAIL VARCHAR(255) NOT NULL,
 		PHONE VARCHAR(255) NOT NULL,
-		RATING float,
+		RATING FLOAT DEFAULT 0.0
 	)`
 
 	_, err := h.db.Exec(query)
 	if err != nil {
-		log.Fatalf("Error creating the user table %v", err)
+		return err
 	}
 
 	log.Println("Hotel Table Created successfully")
@@ -147,5 +152,6 @@ func (h *SqlDataHandeler) AddReviewOfHotelsToDataBase(hotelAndReviews *map[strin
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("error committing transaction for updating the hotels: %w", err)
 	}
+	log.Println("Sucessfully inserted updated the hotels ratings for the users")
 	return nil
 }

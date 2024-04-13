@@ -30,25 +30,54 @@ func NewDataGeneratorCli(db *sql.DB) *cobra.Command {
 				log.Fatalf("Error fetching the number of bookings to generate")
 			}
 
+			///////////////////////////////////////////////////////////////////////////////////////////
+
 			databaseHandler := NewDatabaseHandlerForSQL(db)
-			log.Println("Creating user table..")
+
+			//////////////// Creating all the tables required
+			log.Println("Creating Tables Required  ................")
 			err = databaseHandler.databaseHandlerInterface.CreateUserTable()
 			if err != nil {
 				log.Fatalln("Error creating user table: ", err)
 			}
+			log.Println("✅ User table created successfully")
 
-			log.Println("User table created successfully")
+			err = databaseHandler.databaseHandlerInterface.CreateHotelTable()
+			if err != nil {
+				log.Fatalln("Error creating hotel table: ", err)
+			}
+
+			log.Println("✅ Hotel table created successfully")
+
+			err = databaseHandler.databaseHandlerInterface.CreateBookingsTable()
+			if err != nil {
+				log.Fatalf("Error generating the bookings table %v", err)
+			}
+
+			log.Println("✅ Bookings table created successfully")
+
+			err = databaseHandler.databaseHandlerInterface.CreateUserBookingTable()
+			if err != nil {
+				log.Fatalf("Error creating the user booking table %v", err)
+			}
+
+			log.Println("✅ User booking table created successfully")
+
+			err = databaseHandler.databaseHandlerInterface.CreateReviewsTable()
+			if err != nil {
+				log.Fatalf("Error creating the reviews table %v", err)
+			}
+
+			log.Println("✅ Reviews table created successfully")
+
+			////////////////////////////////////////////////////////////////////////////
+			////////////   Generated all the tables required
+
 			err = databaseHandler.databaseHandlerInterface.CreateFakeUsers(count)
 			if err != nil {
 				log.Fatalf("Error creating fake users: %v", err)
 			}
 
-			////////////////////////////
-			log.Println("Creating the hotel table")
-			err = databaseHandler.databaseHandlerInterface.CreateHotelTable()
-			if err != nil {
-				log.Fatalln("Error creating user table: ", err)
-			}
 			log.Println("Created the hotel table")
 
 			log.Println("Adding fake data to the hotel table")
@@ -58,27 +87,6 @@ func NewDataGeneratorCli(db *sql.DB) *cobra.Command {
 			}
 
 			////////////////////////////////////
-			log.Printf("Generating the bookings data")
-			err = databaseHandler.databaseHandlerInterface.CreateBookingsTable()
-			if err != nil {
-				log.Fatalf("Error generating the bookings table %v", err)
-			}
-
-			log.Println("Bookings Table Generated")
-			err = databaseHandler.databaseHandlerInterface.CreateReviewsTable()
-			if err != nil {
-				log.Fatalf("Error creating the reviews table %v", err)
-			}
-			err = databaseHandler.databaseHandlerInterface.CreateUserBookingTable()
-			if err != nil {
-				log.Fatalf("Error creating the user booking table %v", err)
-			}
-			log.Println("Generated the fake booking data")
-			///
-			err = databaseHandler.databaseHandlerInterface.CreateReviewsTable()
-			if err != nil {
-				log.Fatalf("Error creating the reviews table %v", err)
-			}
 
 			err = databaseHandler.databaseHandlerInterface.CreateBookingFakeData(bookings)
 			if err != nil {

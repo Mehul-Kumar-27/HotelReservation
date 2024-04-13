@@ -38,15 +38,14 @@ func (h *SqlDataHandeler) CreateBookingFakeData(count int) error {
 
 	var wg sync.WaitGroup
 	sem := make(chan struct{}, 100)
-	bookingChn := make(chan types.Booking)
-	reviewChn := make(chan types.Review)
-	userBookingChn := make(chan types.UserBookings)
+	bookingChn := make(chan *types.Booking)
+	reviewChn := make(chan *types.Review)
+	userBookingChn := make(chan *types.UserBookings)
 
 	var allBookings []types.Booking
 	var reviews []types.Review
 	var userBookings []types.UserBookings
-
-	hotelAndRatings := make(map[string]float32)
+	var hotelAndRatings = make(map[string]float32)
 
 	go collectBookingData(bookingChn, &allBookings)
 	go collectReviews(reviewChn, &reviews)
@@ -64,51 +63,84 @@ func (h *SqlDataHandeler) CreateBookingFakeData(count int) error {
 
 			for _, userID := range userIds {
 				booking := generateBooking(hid, userID)
-				bookingChn <- booking
+				bookingChn <- &booking
 				review := generateReview(hid, userID)
-				hotelAndRatings[hid] += review.Rating
+				reviewChn <- &review
 
-				reviewChn <- review
-
-				userBookingChn <- generateUserBooking(userID, review.HotelID, booking.BookingID)
+				userBoooking := generateUserBooking(userID, review.HotelID, booking.BookingID)
+				userBookingChn <- &userBoooking
 			}
 		}(hotelId)
 	}
 
 	wg.Wait()
-	close(bookingChn)
-	close(reviewChn)
-	close(userBookingChn)
+	defer close(bookingChn)
+	defer close(reviewChn)
+	defer close(userBookingChn)
 
 	for hotelID, rating := range hotelAndRatings {
 		hotelAndRatings[hotelID] = rating / float32(50)
 	}
 
-	log.Printf("Total booking generated are %v", len(allBookings)) ///250,000
-	log.Printf("Total reviews generated are %v", len(reviews))      ///250,000
+	log.Printf("Total booking generated are %v", len(allBookings))        ///250,000
+	log.Printf("Total reviews generated are %v", len(reviews))            ///250,000
 	log.Printf("Total user bookings generated are %v", len(userBookings)) /// 250,000
 
-	/// Now I have the bookings data, reviews, user bookings and the hotel reviews
-	/// Will make 4 go routines to make them happen simantenously lets see if it works
-	
+	for _, review := range reviews {
+		hotelAndRatings[review.HotelID] += review.Rating
+	}
+
+	for hotelID, rating := range hotelAndRatings {
+		hotelAndRatings[hotelID] = rating / float32(50)
+	}
+
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		err := h.StoreReviewFakeData(reviews)
+		if err != nil {
+			log.Fatalf("Error storing the fake review data , %v", err)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		err := h.AddReviewOfHotelsToDataBase(&hotelAndRatings)
+		if err != nil {
+			log.Fatalf("Error adding the hotels ratings %v", err)
+		}
+	}()
+	err = h.StoreTheBookingsData(allBookings)
+	if err != nil {
+		log.Fatalf("Error storing bookings data , %v", err)
+	}
+	go func() {
+		defer wg.Done()
+		err := h.StoreUserBookings(userBookings)
+		if err != nil {
+			log.Fatalf("Error storing user bookings data, %v", err)
+		}
+	}()
+	wg.Wait()
+	log.Println("Would you believe this we reached here")
 	return nil
 }
 
-func collectBookingData(bookingChan <-chan types.Booking, allBookings *[]types.Booking) {
+func collectBookingData(bookingChan <-chan *types.Booking, allBookings *[]types.Booking) {
 	for booking := range bookingChan {
-		*allBookings = append(*allBookings, booking)
+		*allBookings = append(*allBookings, *booking)
 	}
 }
 
-func collectReviews(reviewChn <-chan types.Review, allReviews *[]types.Review) {
+func collectReviews(reviewChn <-chan *types.Review, allReviews *[]types.Review) {
 	for review := range reviewChn {
-		*allReviews = append(*allReviews, review)
+		*allReviews = append(*allReviews, *review)
 	}
 }
 
-func collectUserBookings(userBookingsChn <-chan types.UserBookings, userBookings *[]types.UserBookings) {
+func collectUserBookings(userBookingsChn <-chan *types.UserBookings, userBookings *[]types.UserBookings) {
 	for usrBooking := range userBookingsChn {
-		*userBookings = append(*userBookings, usrBooking)
+		*userBookings = append(*userBookings, *usrBooking)
 	}
 }
 
@@ -148,4 +180,44 @@ func generateUserBooking(userID string, hotelID string, bookingID string) types.
 	userBooking.HotelID = hotelID
 
 	return userBooking
+}
+
+func (h *SqlDataHandeler) StoreTheBookingsData(bookings []types.Booking) error {
+	batch := 1000
+	query := `INSERT INTO BOOKINGS (BOOKINGID, HOTELID, USERID, BOOKINGDATE, NUMBEROFDAYS, NUMBEROFROOMS) VALUES (?,?,?,?,?,?)`
+	stmt, err := h.db.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	tx, err := h.db.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(bookings); i += batch {
+		end := i + batch
+		if end > len(bookings) {
+			end = len(bookings)
+		}
+
+		batch := bookings[i:end]
+		for _, booking := range batch {
+			_, err := stmt.Exec(booking.BookingID, booking.HotelID, booking.UserID, booking.BookingDate, booking.NumberOfDays, booking.NumberOfRooms)
+			if err != nil {
+				tx.Rollback()
+				return err
+			}
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	log.Println("Bookings inserted successfully")
+
+	return nil
 }

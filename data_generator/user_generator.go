@@ -81,16 +81,11 @@ func (h *SqlDataHandeler) CreateFakeUsers(count int) error {
 }
 
 func queryToGetRandomUser(count int, db *sql.DB) []string {
-	status := db.Stats()
-	log.Printf("At the start of the functions")
-	log.Printf("%v", status.MaxOpenConnections)
-	log.Printf("Number of open connections: %v", status.OpenConnections)
-	log.Printf("Number of in use connections: %v", status.InUse)
-	log.Printf("Number of idle connections: %v", status.Idle)
-	log.Printf("Number of waiting connections: %v", status.WaitCount)
+
 	var userList []string
 	rows, err := db.Query("SELECT USERID FROM USERS ORDER BY RAND() LIMIT ?", count)
 	if err != nil {
+		status := db.Stats()
 		log.Printf("At Error to get random users")
 		log.Printf("%v", status.MaxOpenConnections)
 		log.Printf("Number of open connections: %v", status.OpenConnections)
