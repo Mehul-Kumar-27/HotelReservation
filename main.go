@@ -5,8 +5,6 @@ import (
 	"flag"
 	"log"
 
-	"github.com/Mehul-Kumar-27/HotelReservation/api"
-	"github.com/Mehul-Kumar-27/HotelReservation/db"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -46,12 +44,6 @@ func main() {
 			},
 		},
 	)
-	apiv1 := app.Group("/api/v1")
-
-	mongoUserHandeller := db.NewMongoUserStore(mongoClient)
-	useHnd := api.NewUserHandeller(mongoUserHandeller)
-	apiv1.Get("/users", useHnd.HandleGetAllUsers)
-	apiv1.Get("/users/:id", useHnd.HandleGetUserById)
 
 	app.Listen(*listenAddress)
 }

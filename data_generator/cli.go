@@ -93,12 +93,15 @@ func NewDataGeneratorCli(db *sql.DB) *cobra.Command {
 				log.Println("Error generating the fake booking data")
 			}
 
+			log.Printf("Sucessfully generated  the required data, exiting the datagenerator")
+			<-cmd.Context().Done()
+
 		},
 	}
 	cmdFlags := cmd.Flags()
-	cmdFlags.Int("u", 20_000, "Number of users to generate")
-	cmdFlags.Int("h", 5000, "Number of hotels to generate")
-	cmdFlags.Int("b", 50, "Number of reviews to generate for a hotel")
+	cmdFlags.Int("u", 20, "Number of users to generate")
+	cmdFlags.Int("h", 5, "Number of hotels to generate")
+	cmdFlags.Int("b", 2, "Number of reviews to generate for a hotel")
 	return cmd
 }
 

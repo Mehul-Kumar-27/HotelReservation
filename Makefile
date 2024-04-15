@@ -14,7 +14,7 @@ down:
 	docker-compose down
 
 test:
-	go test -v ./...
+	go test -v -race -count=1 ./... ;
 
 dgen:
 	@echo "Building the DataGenrator Binary"
