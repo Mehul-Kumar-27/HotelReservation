@@ -99,9 +99,9 @@ func NewDataGeneratorCli(db *sql.DB) *cobra.Command {
 		},
 	}
 	cmdFlags := cmd.Flags()
-	cmdFlags.Int("u", 20, "Number of users to generate")
-	cmdFlags.Int("h", 5, "Number of hotels to generate")
-	cmdFlags.Int("b", 2, "Number of reviews to generate for a hotel")
+	cmdFlags.Int("u", 50, "Number of users to generate")
+	cmdFlags.Int("h", 15, "Number of hotels to generate")
+	cmdFlags.Int("b", 5, "Number of reviews to generate for a hotel")
 	return cmd
 }
 

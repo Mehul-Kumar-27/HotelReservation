@@ -17,7 +17,8 @@ func (h *SqlDataHandeler) CreateUserTable() error {
         LASTNAME VARCHAR(255) NOT NULL,
         EMAIL VARCHAR(255) NOT NULL,
         PHONE VARCHAR(255) NOT NULL,
-        BookingsID JSON
+		PASSWORD VARCHAR(255) NOT NULL,
+        BOOKINGSID JSON
     )`
 
 	_, err := h.db.Exec(query)
@@ -41,7 +42,7 @@ func (h *SqlDataHandeler) CreateFakeUsers(count int) error {
 		users[i] = user
 	}
 
-	query := "INSERT INTO USERS (USERID, FIRSTNAME, LASTNAME, EMAIL, PHONE) VALUES (?, ?, ?, ?, ?)"
+	query := "INSERT INTO USERS (USERID, FIRSTNAME, LASTNAME, EMAIL, PHONE, PASSWORD) VALUES (?, ?, ?, ?, ?, ?)"
 	stmt, err := h.db.Prepare(query)
 	if err != nil {
 		return fmt.Errorf("error preparing user insertion: %w", err)
@@ -62,7 +63,7 @@ func (h *SqlDataHandeler) CreateFakeUsers(count int) error {
 
 		batch := users[i:end]
 		for _, user := range batch {
-			_, err := stmt.Exec(user.UserID, user.FirstName, user.LastName, user.Email, user.Phone)
+			_, err := stmt.Exec(user.UserID, user.FirstName, user.LastName, user.Email, user.Phone, user.Password)
 			if err != nil {
 				tx.Rollback()
 				return fmt.Errorf("error inserting user: %w", err)

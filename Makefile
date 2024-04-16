@@ -1,4 +1,12 @@
 DATA_GENERATOR=datagenerator
+# Specify the path to the protoc executable
+PROTOC := $(shell which protoc)
+
+# Specify the path to the directory containing the proto files
+PROTO_DIR := ./proto
+
+# Specify the output directory for the generated Go files
+GO_OUT_DIR := ./proto/gen
 
 
 build:
@@ -27,3 +35,12 @@ try: down rdgen dgen up
 
 logs:
 	docker logs -f hotelreservation_datagenerator
+
+.PHONY: proto
+
+proto:
+	$(PROTOC) \
+		--go_out=$(GO_OUT_DIR) \
+		--go-grpc_out=$(GO_OUT_DIR) \
+		--proto_path=$(PROTO_DIR) \
+		$(PROTO_DIR)/*.proto

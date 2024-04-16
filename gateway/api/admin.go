@@ -1,6 +1,8 @@
 package api
 
 import (
+
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,5 +17,6 @@ var (
 )
 
 func helloAdmin(ctx *gin.Context) {
+	
 	ctx.IndentedJSON(200, gin.H{"body": "Hello admin"})
 }

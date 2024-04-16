@@ -6,6 +6,6 @@ type User struct {
 	LastName     string         `bson:"lastname" json:"lastname" fake:"{lastname}"`
 	Email        string         `bson:"email" json:"email" fake:"{email}"`
 	Phone        string         `bson:"phone" json:"phone" fake:"{phone}"`
-	
+	Password     string 		`bson:"password" json:"password" fake:"{password:true,true,true,false,false,10}"`
 }
 
