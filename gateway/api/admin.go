@@ -14,6 +14,7 @@ var (
 	adminRoutes = []Route{
 		NewRoute("", "GET", helloAdmin),
 	}
+	
 )
 
 func helloAdmin(ctx *gin.Context) {

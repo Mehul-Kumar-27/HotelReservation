@@ -26,7 +26,8 @@ func main() {
 
 	group := router.Group("/api/v1/")
 	api.Admin.AddToGroup(group)
+	api.User.AddToGroup(group)
 
-	router.Run(":8080")
+	router.Run(":8081")
 
 }

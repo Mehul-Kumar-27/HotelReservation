@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/Mehul-Kumar-27/HotelReservation/proto/gen/auth"
@@ -27,12 +29,34 @@ func NewLoginPayload(userid, email, password string) *LoginPayload {
 	}
 }
 
+type UserClaims struct {
+	jwt.Claims
+	Userid    string
+	FirstName string
+	LastName  string
+	Email     string
+	Phone     string
+	EXP       int64
+}
+
+func NewUserClaims(userid, firstname, lastname, email, phone string, exp int64) *UserClaims {
+	return &UserClaims{
+		Userid:    userid,
+		FirstName: firstname,
+		LastName:  lastname,
+		Email:     email,
+		Phone:     phone,
+		EXP:       exp,
+	}
+}
+
 type AuthInterface interface {
 	LoginService(ctx context.Context, req *auth.Login) (*auth.LoginResponse, error)
 	JwtAuthService(ctx context.Context, req *auth.JwToken) (*auth.JwTokenResponse, error)
 }
 
 type Auth struct {
+	auth.UnimplementedAuthServiceServer
 	db        *sql.DB
 	userStore UserStore
 }
@@ -59,6 +83,7 @@ func (a *Auth) VerifyPassword(password, hashedpassword string) bool {
 }
 
 func (a *Auth) CreateToken(user *types.User) (string, error) {
+
 	claims := jwt.MapClaims{
 		"userid":   user.UserID,
 		"email":    user.Email,
@@ -68,13 +93,15 @@ func (a *Auth) CreateToken(user *types.User) (string, error) {
 		"exp":      time.Now().Add(15 * time.Minute).Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(secretKey)
 }
 
 func (a *Auth) LoginService(ctx context.Context, req *auth.Login) (*auth.LoginResponse, error) {
-	loginPayload := NewLoginPayload(req.Userid, req.Email, req.Password)
-
+	log.Println("Recieved the request for login")
+	loginPayload := NewLoginPayload(req.GetUserid(), req.GetEmail(), req.GetPassword())
+	log.Println(loginPayload.UserId)
+	log.Println(loginPayload.Password)
 	user, err := a.userStore.GetUserByID(ctx, loginPayload.UserId)
 	if err != nil {
 		return &auth.LoginResponse{
@@ -93,16 +120,17 @@ func (a *Auth) LoginService(ctx context.Context, req *auth.Login) (*auth.LoginRe
 		if err != nil {
 			return &auth.LoginResponse{
 				Response: &auth.Response{
-					Status: 400,
+					Status: 500,
 					Body:   "unexpected error occured",
 				},
 				Acesstoken: "",
 			}, nil
 		}
+		log.Println(token)
 		return &auth.LoginResponse{
 			Response: &auth.Response{
 				Status: 200,
-				Body:   "unauthorized user",
+				Body:   "authenticated",
 			},
 			Acesstoken: token,
 		}, nil
@@ -116,5 +144,57 @@ func (a *Auth) LoginService(ctx context.Context, req *auth.Login) (*auth.LoginRe
 		},
 		Acesstoken: "",
 	}, nil
+
+}
+
+func (a *Auth) JwtAuthService(ctx context.Context, req *auth.JwToken) (*auth.JwTokenResponse, error) {
+	tokenRequest := req.GetToken()
+
+	token, err := jwt.ParseWithClaims(
+		tokenRequest,
+		&UserClaims{},
+		func(t *jwt.Token) (interface{}, error) {
+			_, ok := t.Method.(*jwt.SigningMethodHMAC)
+			if !ok {
+				return nil, fmt.Errorf("unauthorized user")
+			}
+
+			return []byte(secretKey), nil
+		},
+	)
+	if err != nil {
+		return &auth.JwTokenResponse{
+				Response: &auth.Response{
+					Status: 400,
+					Body:   "unauthorized user",
+				},
+
+				Userid: "",
+			},
+			nil
+	}
+
+	claims, ok := token.Claims.(*UserClaims)
+	if !ok {
+		return &auth.JwTokenResponse{
+				Response: &auth.Response{
+					Status: 400,
+					Body:   "unauthorized user",
+				},
+
+				Userid: "",
+			},
+			nil
+	}
+
+	return &auth.JwTokenResponse{
+			Response: &auth.Response{
+				Status: 200,
+				Body:   "jwt auth success",
+			},
+
+			Userid: claims.Userid,
+		},
+		nil
 
 }

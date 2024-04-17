@@ -8,6 +8,7 @@ import (
 
 	"github.com/Mehul-Kumar-27/HotelReservation/types"
 	"github.com/brianvoe/gofakeit/v6"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (h *SqlDataHandeler) CreateUserTable() error {
@@ -29,6 +30,14 @@ func (h *SqlDataHandeler) CreateUserTable() error {
 	log.Println("Table created successfully")
 	return nil
 }
+func HashedPassword(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatalf("Error hashing the password %v", err)
+	}
+
+	return string(hashedPassword), nil
+}
 
 func (h *SqlDataHandeler) CreateFakeUsers(count int) error {
 	start := time.Now()
@@ -39,6 +48,8 @@ func (h *SqlDataHandeler) CreateFakeUsers(count int) error {
 		if err := gofakeit.Struct(&user); err != nil {
 			return fmt.Errorf("error generating user: %w", err)
 		}
+		log.Println("Userid: %v, Password: %v", user.UserID, user.Password)
+		user.Password, _ = HashedPassword(user.Password)
 		users[i] = user
 	}
 

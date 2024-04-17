@@ -5,7 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net"
 	"time"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/Mehul-Kumar-27/HotelReservation/proto/gen/auth"
+	"google.golang.org/grpc"
 )
 
 type Config struct {
@@ -62,6 +66,18 @@ func main() {
 	}
 
 	db.SetMaxOpenConns(500)
+
+	listner, err := net.Listen("tcp", ":8083")
+	if err != nil {
+		log.Fatalf("Error starting a tcp connection : %v", err)
+	}
+	grpcServer := grpc.NewServer()
+	grpcAuthServerImplementation := NewAuth(db)
+	auth.RegisterAuthServiceServer(grpcServer, grpcAuthServerImplementation)
+
+	if err := grpcServer.Serve(listner); err != nil {
+		log.Printf("Error listning to the grpc server, %v", err)
+	}
 
 }
 func connectToMySQL(ctx context.Context, config *Config, database ConnectToSQL) (*sql.DB, error) {
