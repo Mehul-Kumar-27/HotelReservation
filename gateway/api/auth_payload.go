@@ -43,22 +43,13 @@ type Auth struct {
 }
 
 func NewAuth() *Auth {
-	// conn, err := grpc.Dial("localhost:8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	// if err != nil {
-	// 	log.Fatalf("Error dialing the auth grpc server %v", err)
-	// }
-	// client := auth.NewAuthServiceClient(conn)
-	// return &Auth{
-	// 	client: client,
-	// 	conn:   conn,
-	// }
 
 	return &Auth{}
 }
 
 type AuthRequest interface {
 	LoginService(ctx context.Context, loginPayload LoginPayload) AuthResponse
-	//JwtAuthService(ctx context.Context) (*auth.JwTokenResponse, error)
+	JwtAuthService(ctx context.Context, jwtPayload JWTPayload) AuthResponse
 }
 
 func (a *Auth) LoginService(ctx context.Context, loginPayload LoginPayload) AuthResponse {
@@ -72,6 +63,8 @@ func (a *Auth) LoginService(ctx context.Context, loginPayload LoginPayload) Auth
 		}
 	}
 
+	defer conn.Close()
+
 	client := auth.NewAuthServiceClient(conn)
 	respose, err := client.LoginService(ctx, &auth.Login{Userid: loginPayload.Userid, Email: loginPayload.Email, Password: loginPayload.Password})
 	if err != nil {
@@ -83,11 +76,40 @@ func (a *Auth) LoginService(ctx context.Context, loginPayload LoginPayload) Auth
 	}
 
 	log.Println(respose.GetAcesstoken())
-
+	
 	return AuthResponse{
 		staus:      int(respose.Response.GetStatus()),
 		response:   respose.Response.GetBody(),
 		acesstoken: respose.GetAcesstoken(),
 	}
 
+}
+
+func (a *Auth) JwtAuthService(ctx context.Context, jwtPayload JWTPayload) AuthResponse {
+	log.Println("Sending the login request")
+	conn, err := grpc.Dial("localhost:8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return AuthResponse{
+			staus:      500,
+			response:   "unexpected error occured",
+			acesstoken: "",
+		}
+	}
+	defer conn.Close()
+	client := auth.NewAuthServiceClient(conn)
+
+	response, err := client.JwtAuthService(ctx, &auth.JwToken{Token: jwtPayload.Token})
+	if err != nil {
+		return AuthResponse{
+			staus:      400,
+			response:   "unauthorized user",
+			acesstoken: "",
+		}
+	}
+
+	return AuthResponse{
+		staus:      int(response.Response.GetStatus()),
+		response:   response.Response.GetBody(),
+		acesstoken: response.GetUserid(),
+	}
 }

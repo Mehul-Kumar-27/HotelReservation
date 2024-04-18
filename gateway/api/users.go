@@ -12,7 +12,8 @@ var (
 
 var (
 	userRoutes = []Route{
-		NewRoute("auth", "POST", userLogin),
+		NewRoute("auth", "POST", jwt, userLogin),
+		NewRoute("auth", "GET", jwt),
 	}
 )
 
@@ -43,6 +44,25 @@ func userLogin(ctx *gin.Context) {
 	log.Println(loginPayload.Userid)
 	response := userHandler.AuthRequest.LoginService(ctx, loginPayload)
 
-	ctx.JSON(response.staus, response)
-	
+	ctx.Header("AcessToken", "Bearer "+response.acesstoken)
+	ctx.JSON(response.staus, gin.H{"message": response.response})
+	ctx.Abort()
+}
+
+func jwt(ctx *gin.Context) {
+	var jwtPayload JWTPayload
+
+	acesstoken := ctx.GetHeader("Authorization")
+	jwtPayload.Token = acesstoken
+
+	response := userHandler.AuthRequest.JwtAuthService(ctx, jwtPayload)
+	if response.staus == 200 {
+		ctx.JSON(response.staus, gin.H{"stauts": response.staus, "userid": response.acesstoken, "message": response.response})
+		ctx.Abort()
+	} else {
+
+		ctx.Next()
+		ctx.JSON(response.staus, gin.H{"stauts": response.staus, "userid": response.acesstoken, "message": response.response})
+
+	}
 }

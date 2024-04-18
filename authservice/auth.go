@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 
@@ -30,7 +29,7 @@ func NewLoginPayload(userid, email, password string) *LoginPayload {
 }
 
 type UserClaims struct {
-	jwt.Claims
+	jwt.RegisteredClaims
 	Userid    string
 	FirstName string
 	LastName  string
@@ -85,12 +84,13 @@ func (a *Auth) VerifyPassword(password, hashedpassword string) bool {
 func (a *Auth) CreateToken(user *types.User) (string, error) {
 
 	claims := jwt.MapClaims{
-		"userid":   user.UserID,
-		"email":    user.Email,
-		"firsname": user.FirstName,
-		"lastname": user.LastName,
-		"phone":    user.Phone,
-		"exp":      time.Now().Add(15 * time.Minute).Unix(),
+		"registered": jwt.RegisteredClaims{},
+		"userid":     user.UserID,
+		"email":      user.Email,
+		"firsname":   user.FirstName,
+		"lastname":   user.LastName,
+		"phone":      user.Phone,
+		"exp":        time.Now().Add(15 * time.Minute).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -149,24 +149,22 @@ func (a *Auth) LoginService(ctx context.Context, req *auth.Login) (*auth.LoginRe
 
 func (a *Auth) JwtAuthService(ctx context.Context, req *auth.JwToken) (*auth.JwTokenResponse, error) {
 	tokenRequest := req.GetToken()
-
+	log.Println("Request for the jwt auth")
+	log.Println(tokenRequest)
 	token, err := jwt.ParseWithClaims(
 		tokenRequest,
 		&UserClaims{},
-		func(t *jwt.Token) (interface{}, error) {
-			_, ok := t.Method.(*jwt.SigningMethodHMAC)
-			if !ok {
-				return nil, fmt.Errorf("unauthorized user")
-			}
-
+		func(tokenRequest *jwt.Token) (interface{}, error) {
 			return []byte(secretKey), nil
 		},
 	)
 	if err != nil {
+		log.Printf("Inside the err %v", err)
+
 		return &auth.JwTokenResponse{
 				Response: &auth.Response{
 					Status: 400,
-					Body:   "unauthorized user",
+					Body:   "token expired",
 				},
 
 				Userid: "",
@@ -176,6 +174,8 @@ func (a *Auth) JwtAuthService(ctx context.Context, req *auth.JwToken) (*auth.JwT
 
 	claims, ok := token.Claims.(*UserClaims)
 	if !ok {
+		log.Printf("Inside the not ok err %v", err)
+
 		return &auth.JwTokenResponse{
 				Response: &auth.Response{
 					Status: 400,
