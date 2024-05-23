@@ -20,7 +20,7 @@ var (
 var userHandler *UserHandler
 
 func init() {
-	log.Println("Intiallizing the user handler")
+	log.Println("Initializing the user handler")
 	userHandler = NewUserHandler(NewAuth())
 }
 
@@ -44,8 +44,8 @@ func userLogin(ctx *gin.Context) {
 	log.Println(loginPayload.Userid)
 	response := userHandler.AuthRequest.LoginService(ctx, loginPayload)
 
-	ctx.Header("AcessToken", "Bearer "+response.acesstoken)
-	ctx.JSON(response.staus, gin.H{"message": response.response})
+	ctx.Header("AcessToken", "Bearer "+response.accesstoken)
+	ctx.JSON(response.status, gin.H{"message": response.response})
 	ctx.Abort()
 }
 
@@ -56,13 +56,13 @@ func jwt(ctx *gin.Context) {
 	jwtPayload.Token = acesstoken
 
 	response := userHandler.AuthRequest.JwtAuthService(ctx, jwtPayload)
-	if response.staus == 200 {
-		ctx.JSON(response.staus, gin.H{"stauts": response.staus, "userid": response.acesstoken, "message": response.response})
+	if response.status == 200 {
+		ctx.JSON(response.status, gin.H{"stauts": response.status, "userid": response.accesstoken, "message": response.response})
 		ctx.Abort()
 	} else {
 
 		ctx.Next()
-		ctx.JSON(response.staus, gin.H{"stauts": response.staus, "userid": response.acesstoken, "message": response.response})
+		ctx.JSON(response.status, gin.H{"stauts": response.status, "userid": response.accesstoken, "message": response.response})
 
 	}
 }

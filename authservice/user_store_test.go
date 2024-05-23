@@ -8,14 +8,11 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Mehul-Kumar-27/HotelReservation/types"
-	"github.com/golang/mock/gomock"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUserGetUserById_UserFound(t *testing.T) {
-	ctrl := gomock.NewController(t)
-
-	defer ctrl.Finish()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -54,9 +51,6 @@ func TestUserGetUserById_UserFound(t *testing.T) {
 }
 
 func TestGetUserById_UserNotFound(t *testing.T) {
-	ctrl := gomock.NewController(t)
-
-	defer ctrl.Finish()
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)

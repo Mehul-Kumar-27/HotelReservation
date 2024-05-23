@@ -67,7 +67,7 @@ func main() {
 
 	db.SetMaxOpenConns(500)
 
-	listner, err := net.Listen("tcp", ":8083")
+	listener, err := net.Listen("tcp", ":8083")
 	if err != nil {
 		log.Fatalf("Error starting a tcp connection : %v", err)
 	}
@@ -75,8 +75,8 @@ func main() {
 	grpcAuthServerImplementation := NewAuth(db)
 	auth.RegisterAuthServiceServer(grpcServer, grpcAuthServerImplementation)
 
-	if err := grpcServer.Serve(listner); err != nil {
-		log.Printf("Error listning to the grpc server, %v", err)
+	if err := grpcServer.Serve(listener); err != nil {
+		log.Printf("Error listing to the grpc server, %v", err)
 	}
 
 }
@@ -90,7 +90,7 @@ func connectToMySQL(ctx context.Context, config *Config, database ConnectToSQL) 
 		db, err = database.Open("mysql", dsn)
 		if err != nil {
 			fmt.Printf("Error connecting to the database, %v", err)
-			fmt.Println("Trying againg in 2 second")
+			fmt.Println("Trying again in 2 second")
 			time.Sleep(5 * time.Second)
 			continue
 		}
