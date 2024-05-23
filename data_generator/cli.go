@@ -93,7 +93,7 @@ func NewDataGeneratorCli(db *sql.DB) *cobra.Command {
 				log.Println("Error generating the fake booking data")
 			}
 
-			log.Printf("Sucessfully generated  the required data, exiting the datagenerator")
+			log.Printf("Successfully generated  the required data, exiting the datagenerator")
 			<-cmd.Context().Done()
 
 		},

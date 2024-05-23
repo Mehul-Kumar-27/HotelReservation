@@ -16,9 +16,9 @@ type LoginPayload struct {
 }
 
 type AuthResponse struct {
-	staus      int
-	response   string
-	acesstoken string
+	status      int
+	response    string
+	accesstoken string
 }
 
 func NewLoginPayload(userid, email, password string) *LoginPayload {
@@ -57,30 +57,30 @@ func (a *Auth) LoginService(ctx context.Context, loginPayload LoginPayload) Auth
 	conn, err := grpc.Dial("localhost:8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return AuthResponse{
-			staus:      500,
-			response:   "unexpected error occured",
-			acesstoken: "",
+			status:      500,
+			response:    "unexpected error occured",
+			accesstoken: "",
 		}
 	}
 
 	defer conn.Close()
 
 	client := auth.NewAuthServiceClient(conn)
-	respose, err := client.LoginService(ctx, &auth.Login{Userid: loginPayload.Userid, Email: loginPayload.Email, Password: loginPayload.Password})
+	response, err := client.LoginService(ctx, &auth.Login{Userid: loginPayload.Userid, Email: loginPayload.Email, Password: loginPayload.Password})
 	if err != nil {
 		return AuthResponse{
-			staus:      400,
-			response:   "unauthorized",
-			acesstoken: "",
+			status:      400,
+			response:    "unauthorized",
+			accesstoken: "",
 		}
 	}
 
-	log.Println(respose.GetAcesstoken())
-	
+	log.Println(response.GetAcesstoken())
+
 	return AuthResponse{
-		staus:      int(respose.Response.GetStatus()),
-		response:   respose.Response.GetBody(),
-		acesstoken: respose.GetAcesstoken(),
+		status:      int(response.Response.GetStatus()),
+		response:    response.Response.GetBody(),
+		accesstoken: response.GetAcesstoken(),
 	}
 
 }
@@ -90,9 +90,9 @@ func (a *Auth) JwtAuthService(ctx context.Context, jwtPayload JWTPayload) AuthRe
 	conn, err := grpc.Dial("localhost:8083", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return AuthResponse{
-			staus:      500,
-			response:   "unexpected error occured",
-			acesstoken: "",
+			status:      500,
+			response:    "unexpected error occured",
+			accesstoken: "",
 		}
 	}
 	defer conn.Close()
@@ -101,15 +101,15 @@ func (a *Auth) JwtAuthService(ctx context.Context, jwtPayload JWTPayload) AuthRe
 	response, err := client.JwtAuthService(ctx, &auth.JwToken{Token: jwtPayload.Token})
 	if err != nil {
 		return AuthResponse{
-			staus:      400,
-			response:   "unauthorized user",
-			acesstoken: "",
+			status:      400,
+			response:    "unauthorized user",
+			accesstoken: "",
 		}
 	}
 
 	return AuthResponse{
-		staus:      int(response.Response.GetStatus()),
-		response:   response.Response.GetBody(),
-		acesstoken: response.GetUserid(),
+		status:      int(response.Response.GetStatus()),
+		response:    response.Response.GetBody(),
+		accesstoken: response.GetUserid(),
 	}
 }
